@@ -5,23 +5,9 @@
 <title>Tra cứu sản phẩm</title>
 
 <style>
-body {
-  font-family: Arial;
-  max-width: 900px;
-  margin: auto;
-}
-
-input {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-}
-
-.item {
-  border: 1px solid #ccc;
-  padding: 10px;
-  margin-bottom: 10px;
-}
+body { font-family: Arial; max-width: 900px; margin: auto; }
+input { width: 100%; padding: 10px; margin: 10px 0; }
+.item { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
 </style>
 </head>
 
@@ -30,6 +16,7 @@ input {
 <h2>TRA CỨU SẢN PHẨM</h2>
 
 <input id="search" placeholder="Nhập để tìm...">
+<div id="status">Đang tải dữ liệu...</div>
 <div id="list"></div>
 
 <script>
@@ -38,17 +25,22 @@ const API = "https://api.sheetbest.com/sheets/99ace841-423e-4712-9cd7-3314702f8b
 
 let data = [];
 
-fetch(API)
-.then(res => res.json())
-.then(res => {
-  console.log("DATA:", res); // debug
-  data = res;
-  render(data);
-})
-.catch(err => {
-  document.getElementById("list").innerHTML = "LỖI LOAD DỮ LIỆU";
-  console.log(err);
-});
+async function loadData() {
+  try {
+    const res = await fetch(API);
+    const json = await res.json();
+
+    console.log("DATA:", json);
+
+    data = json;
+    document.getElementById("status").innerText = "";
+    render(data);
+
+  } catch (err) {
+    console.log(err);
+    document.getElementById("status").innerText = "❌ Không kết nối được API";
+  }
+}
 
 function render(arr){
   let html = "";
@@ -71,6 +63,8 @@ document.getElementById("search").addEventListener("input", function(){
   );
   render(filtered);
 });
+
+loadData();
 
 </script>
 
