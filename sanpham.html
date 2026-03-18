@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tra cứu sản phẩm</title>
+
+<style>
+body {
+  font-family: Arial;
+  max-width: 900px;
+  margin: auto;
+  background: #f5f5f5;
+}
+
+h2 {
+  text-align: center;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 15px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.item {
+  background: white;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.key {
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<h2>TRA CỨU SẢN PHẨM</h2>
+
+<input type="text" id="search" placeholder="Nhập thông tin...">
+
+<div id="list"></div>
+
+<script>
+
+const API = "https://api.sheetbest.com/sheets/99ace841-423e-4712-9cd7-3314702f8bf7/tong";
+
+fetch(API)
+.then(res => res.json())
+.then(data => {
+  window.products = data;
+  render(data);
+});
+
+function render(data){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(p => {
+    let html = `<div class="item">`;
+
+    for (let key in p) {
+      html += `<div><span class="key">${key}:</span> ${p[key]}</div>`;
+    }
+
+    html += `</div>`;
+    list.innerHTML += html;
+  });
+}
+
+document.getElementById("search").addEventListener("input", e=>{
+  const keyword = e.target.value.toLowerCase();
+
+  const filtered = window.products.filter(p =>
+    Object.values(p).some(value =>
+      String(value).toLowerCase().includes(keyword)
+    )
+  );
+
+  render(filtered);
+});
+
+</script>
+
+</body>
+</html>
