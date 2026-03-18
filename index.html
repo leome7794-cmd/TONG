@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tra cứu sản phẩm</title>
+
+<style>
+body {
+  font-family: Arial;
+  max-width: 900px;
+  margin: auto;
+}
+
+h2 {
+  text-align: center;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 15px 0;
+}
+
+.item {
+  border-bottom: 1px solid #ccc;
+  padding: 10px 0;
+}
+
+.het { color: red; }
+.saphet { color: orange; }
+.conn { color: green; }
+
+</style>
+</head>
+
+<body>
+
+<h2>TRA CỨU SẢN PHẨM</h2>
+
+<input type="text" id="search" placeholder="Nhập tên hoặc mã sản phẩm...">
+
+<div id="list"></div>
+
+<script>
+
+const API = "https://api.sheetbest.com/sheets/99ace841-423e-4712-9cd7-3314702f8bf7/TONG";
+
+fetch(API)
+.then(res => res.json())
+.then(data => {
+  window.products = data;
+  render(data);
+});
+
+function hienThiTonKho(so){
+  so = Number(so);
+  if(so === 0) return "<span class='het'>Hết hàng</span>";
+  if(so <= 5) return "<span class='saphet'>Gần hết</span>";
+  if(so <= 20) return "<span class='saphet'>Sắp hết</span>";
+  return "<span class='conn'>Còn nhiều</span>";
+}
+
+function render(data){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(p => {
+    list.innerHTML += `
+      <div class="item">
+        <b>${p.ten_sp}</b><br>
+        Giá: ${Number(p.gia).toLocaleString()}đ<br>
+        Tồn kho: ${hienThiTonKho(p.ton_kho)}<br>
+        KM: ${p.khuyen_mai || "Không có"}
+      </div>
+    `;
+  });
+}
+
+document.getElementById("search").addEventListener("input", e=>{
+  const keyword = e.target.value.toLowerCase();
+
+  const filtered = window.products.filter(p =>
+    p.ten_sp.toLowerCase().includes(keyword) ||
+    p.sku.toLowerCase().includes(keyword)
+  );
+
+  render(filtered);
+});
+
+</script>
+
+</body>
+</html>
