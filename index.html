@@ -9,6 +9,7 @@ body {
   font-family: Arial;
   max-width: 900px;
   margin: auto;
+  background: #f5f5f5;
 }
 
 h2 {
@@ -19,16 +20,21 @@ input {
   width: 100%;
   padding: 12px;
   margin: 15px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
 }
 
 .item {
-  border-bottom: 1px solid #ccc;
-  padding: 10px 0;
+  background: white;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.het { color: red; }
-.saphet { color: orange; }
-.conn { color: green; }
+.key {
+  font-weight: bold;
+}
 
 </style>
 </head>
@@ -37,13 +43,13 @@ input {
 
 <h2>TRA CỨU SẢN PHẨM</h2>
 
-<input type="text" id="search" placeholder="Nhập tên hoặc mã sản phẩm...">
+<input type="text" id="search" placeholder="Nhập bất kỳ thông tin...">
 
 <div id="list"></div>
 
 <script>
 
-const API = "https://api.sheetbest.com/sheets/99ace841-423e-4712-9cd7-3314702f8bf7/TONG";
+const API = "https://api.sheetbest.com/sheets/99ace841-423e-4712-9cd7-3314702f8bf7/tong";
 
 fetch(API)
 .then(res => res.json())
@@ -52,27 +58,21 @@ fetch(API)
   render(data);
 });
 
-function hienThiTonKho(so){
-  so = Number(so);
-  if(so === 0) return "<span class='het'>Hết hàng</span>";
-  if(so <= 5) return "<span class='saphet'>Gần hết</span>";
-  if(so <= 20) return "<span class='saphet'>Sắp hết</span>";
-  return "<span class='conn'>Còn nhiều</span>";
-}
-
 function render(data){
   const list = document.getElementById("list");
   list.innerHTML = "";
 
   data.forEach(p => {
-    list.innerHTML += `
-      <div class="item">
-        <b>${p.ten_sp}</b><br>
-        Giá: ${Number(p.gia).toLocaleString()}đ<br>
-        Tồn kho: ${hienThiTonKho(p.ton_kho)}<br>
-        KM: ${p.khuyen_mai || "Không có"}
-      </div>
-    `;
+
+    let html = `<div class="item">`;
+
+    for (let key in p) {
+      html += `<div><span class="key">${key}:</span> ${p[key]}</div>`;
+    }
+
+    html += `</div>`;
+
+    list.innerHTML += html;
   });
 }
 
@@ -80,8 +80,9 @@ document.getElementById("search").addEventListener("input", e=>{
   const keyword = e.target.value.toLowerCase();
 
   const filtered = window.products.filter(p =>
-    p.ten_sp.toLowerCase().includes(keyword) ||
-    p.sku.toLowerCase().includes(keyword)
+    Object.values(p).some(value =>
+      String(value).toLowerCase().includes(keyword)
+    )
   );
 
   render(filtered);
