@@ -89,7 +89,13 @@ tr:hover {
   font-weight: bold;
 }
 
-.red { background:#f8c6c6; }
+/* 🔥 ĐỎ ĐẬM CHO HẾT HÀNG */
+.red { 
+  background:#ff4d4f; 
+  color:white;
+  font-weight:bold;
+}
+
 .orange { background:#ffe0d6; }
 .green { background:#d4edda; }
 
@@ -152,9 +158,10 @@ const API = "https://api.sheetbest.com/sheets/dcfb93e9-0641-40dc-8315-b8edf3ed08
 
 let list = [];
 let current = [];
+let sortKey = "";
 let sortAsc = true;
 
-// LOAD
+// LOAD DATA
 async function loadData() {
   try {
     const res = await fetch(API + "?t=" + Date.now());
@@ -171,7 +178,7 @@ async function loadData() {
   }
 }
 
-// STATS
+// THỐNG KÊ
 function updateStats() {
   let total = list.length;
   let low = 0;
@@ -188,7 +195,7 @@ function updateStats() {
   document.getElementById("out").innerText = out;
 }
 
-// RENDER
+// RENDER TABLE
 function render(arr) {
   if (!arr.length) return;
 
@@ -196,7 +203,8 @@ function render(arr) {
   let html = "<table><tr>";
 
   keys.forEach(k => {
-    html += `<th onclick="sort('${k}')">${k}</th>`;
+    let icon = (k === sortKey) ? (sortAsc ? " ▲" : " ▼") : "";
+    html += `<th onclick="sort('${k}')">${k}${icon}</th>`;
   });
 
   html += "</tr>";
@@ -207,6 +215,7 @@ function render(arr) {
     keys.forEach(k => {
       let val = row[k];
 
+      // KM THÁNG
       if (k === "KM THÁNG") {
         if (val && val.trim() !== "") {
           html += `<td class="green">${val}</td>`;
@@ -215,6 +224,7 @@ function render(arr) {
         }
       }
 
+      // TỒN KHO
       else if (k === "TỒN KHO (HỘP)") {
 
         let num = parseInt(String(val).replace(/[^0-9]/g, "")) || 0;
@@ -279,12 +289,26 @@ function resetFilter() {
 
 // SORT
 function sort(key) {
-  current.sort((a,b) => {
+
+  if (sortKey === key) {
+    sortAsc = !sortAsc;
+  } else {
+    sortKey = key;
+    sortAsc = true;
+  }
+
+  current.sort((a, b) => {
+
     let A = a[key];
     let B = b[key];
 
-    let numA = parseInt(A);
-    let numB = parseInt(B);
+    if (key === "TỒN KHO (HỘP)") {
+      A = parseInt(String(A).replace(/[^0-9]/g, "")) || 0;
+      B = parseInt(String(B).replace(/[^0-9]/g, "")) || 0;
+    }
+
+    let numA = parseFloat(A);
+    let numB = parseFloat(B);
 
     if (!isNaN(numA) && !isNaN(numB)) {
       return sortAsc ? numA - numB : numB - numA;
@@ -295,7 +319,6 @@ function sort(key) {
       : String(B).localeCompare(String(A));
   });
 
-  sortAsc = !sortAsc;
   render(current);
 }
 
