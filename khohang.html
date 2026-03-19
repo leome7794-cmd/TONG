@@ -2,6 +2,10 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+
+<!-- 🔥 FIX MOBILE KHÔNG ZOOM LUNG TUNG -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>DANH MỤC SẢN PHẨM AIKYA 2026</title>
 
 <style>
@@ -31,13 +35,14 @@ h1 {
   margin-bottom: 12px;
 }
 
-/* INPUT */
+/* INPUT (🔥 FIX ZOOM) */
 input {
   width: 100%;
   padding: 10px;
   border-radius: 8px;
   border: 1px solid #ddd;
   margin-bottom: 10px;
+  font-size: 16px; /* 🔥 QUAN TRỌNG: tránh auto zoom */
 }
 
 /* BUTTON */
@@ -89,14 +94,17 @@ tr:hover {
   font-weight: bold;
 }
 
-/* 🔥 ĐỎ ĐẬM CHO HẾT HÀNG */
+/* 🔴 HẾT HÀNG (ĐỎ ĐẬM) */
 .red { 
   background:#ff4d4f; 
   color:white;
   font-weight:bold;
 }
 
+/* 🟠 SẮP HẾT */
 .orange { background:#ffe0d6; }
+
+/* 🟢 KM */
 .green { background:#d4edda; }
 
 /* STATUS */
@@ -195,7 +203,7 @@ function updateStats() {
   document.getElementById("out").innerText = out;
 }
 
-// RENDER TABLE
+// RENDER
 function render(arr) {
   if (!arr.length) return;
 
@@ -215,7 +223,6 @@ function render(arr) {
     keys.forEach(k => {
       let val = row[k];
 
-      // KM THÁNG
       if (k === "KM THÁNG") {
         if (val && val.trim() !== "") {
           html += `<td class="green">${val}</td>`;
@@ -224,9 +231,7 @@ function render(arr) {
         }
       }
 
-      // TỒN KHO
       else if (k === "TỒN KHO (HỘP)") {
-
         let num = parseInt(String(val).replace(/[^0-9]/g, "")) || 0;
 
         if (num === 0) {
