@@ -163,7 +163,19 @@ function render(arr) {
 
       // ✅ TỒN KHO (HỘP) (CHÍNH XÁC)
       else if (k === "TỒN KHO (HỘP)") {
-        let num = Number(val);
+
+  let num = parseInt(String(val).replace(/[^0-9]/g, "")) || 0;
+
+  if (num === 0) {
+    html += `<td style="background:#f8c6c6;">${val}</td>`; // đỏ nhạt
+  } 
+  else if (num < 50) {
+    html += `<td style="background:#ffe0d6;">${val}</td>`; // cam nhạt
+  } 
+  else {
+    html += `<td>${val}</td>`;
+  }
+}
 
         if (num === 0) {
           html += `<td style="background:#f8c6c6;">${val}</td>`;
