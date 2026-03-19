@@ -46,7 +46,10 @@ input {
 <h1>TRA CỨU KHO HÀNG</h1>
 
 <input id="search" placeholder="Tìm sản phẩm, giá, tồn kho...">
-
+<select id="filter">
+  <option value="">Tất cả</option>
+  <option value="low">Sắp hết hàng</option>
+</select>
 <div id="status">Đang tải dữ liệu...</div>
 <div id="data"></div>
 
@@ -73,23 +76,40 @@ async function loadData() {
 }
 
 function render(arr) {
-  let html = "";
+  if (arr.length === 0) {
+    document.getElementById("data").innerHTML = "Không có dữ liệu";
+    return;
+  }
 
-  arr.forEach(item => {
-    html += `<div class="item">`;
+  let keys = Object.keys(arr[0]);
 
-    for (let key in item) {
+  let html = "<table border='1' cellpadding='8' style='border-collapse: collapse; width:100%'>";
+  
+  html += "<tr>";
+  keys.forEach(k => {
+    html += "<th>" + k + "</th>";
+  });
+  html += "</tr>";
 
-      let value = item[key];
+  arr.forEach(row => {
+    html += "<tr>";
+    keys.forEach(k => {
+      let val = row[k];
 
-      // highlight tồn kho
-      if (key.toLowerCase().includes("ton") && Number(value) < 5) {
-        html += `<div><b>${key}:</b> <span class="low">${value}</span></div>`;
+      if (k.toLowerCase().includes("ton") && Number(val) < 5) {
+        html += `<td style="color:red; font-weight:bold">${val}</td>`;
       } else {
-        html += `<div><b>${key}:</b> <span class="ok">${value}</span></div>`;
+        html += "<td>" + val + "</td>";
       }
 
-    }
+    });
+    html += "</tr>";
+  });
+
+  html += "</table>";
+
+  document.getElementById("data").innerHTML = html;
+}
 
     html += `</div>`;
   });
@@ -109,7 +129,21 @@ document.getElementById("search").addEventListener("input", function() {
 
   render(filtered);
 });
+document.getElementById("filter").addEventListener("change", function() {
+  let val = this.value;
 
+  let filtered = list;
+
+  if (val === "low") {
+    filtered = list.filter(row =>
+      Object.keys(row).some(k =>
+        k.toLowerCase().includes("ton") && Number(row[k]) < 5
+      )
+    );
+  }
+
+  render(filtered);
+});
 loadData();
 
 </script>
