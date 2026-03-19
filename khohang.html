@@ -7,64 +7,70 @@
 <style>
 body {
   font-family: Arial;
-  background: #f5f7fb;
+  background: #f4f6fb;
   margin: 0;
-  padding: 20px;
+  padding: 15px;
 }
 
 .container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: auto;
 }
 
-.header {
+h1 {
   text-align: center;
-  margin-bottom: 20px;
-}
-
-.header h1 {
   color: #d32f2f;
 }
 
+/* CARD */
 .card {
   background: white;
-  padding: 15px;
+  padding: 12px;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  margin-bottom: 15px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+  margin-bottom: 12px;
 }
 
+/* INPUT */
 input {
   width: 100%;
   padding: 10px;
-  margin-bottom: 10px;
   border-radius: 8px;
   border: 1px solid #ddd;
+  margin-bottom: 10px;
 }
 
 /* BUTTON */
 button {
-  padding: 8px 12px;
-  margin: 5px;
+  padding: 7px 12px;
   border: none;
   border-radius: 8px;
+  margin: 4px;
   cursor: pointer;
 }
 
-.btn-orange { background: #ff7043; color: white; }
-.btn-green { background: #43a047; color: white; }
-.btn-gray { background: #777; color: white; }
+.btn-orange { background:#ff7043; color:white; }
+.btn-green { background:#43a047; color:white; }
+.btn-gray { background:#777; color:white; }
 
 /* TABLE */
+.table-wrap {
+  overflow-x: auto;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 900px;
 }
 
 th {
   background: #d32f2f;
   color: white;
   padding: 10px;
+  position: sticky;
+  top: 0;
+  cursor: pointer;
 }
 
 td {
@@ -76,9 +82,37 @@ tr:hover {
   background: #fff5f5;
 }
 
-#status {
-  margin-bottom: 10px;
+/* BADGE */
+.badge {
+  padding: 4px 8px;
+  border-radius: 8px;
   font-weight: bold;
+}
+
+.red { background:#f8c6c6; }
+.orange { background:#ffe0d6; }
+.green { background:#d4edda; }
+
+/* STATUS */
+#status {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* STATS */
+.stats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stat-box {
+  background: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  flex: 1;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 </style>
 </head>
@@ -87,21 +121,27 @@ tr:hover {
 
 <div class="container">
 
-<div class="header">
-  <h1>📦 DANH MỤC SẢN PHẨM AIKYA 2026</h1>
-</div>
+<h1>📦 DANH MỤC SẢN PHẨM AIKYA 2026</h1>
 
 <div class="card">
   <input id="search" placeholder="🔍 Tìm sản phẩm...">
 
-  <button class="btn-orange" onclick="filterLow()">Tồn kho &lt; 50</button>
+  <button class="btn-orange" onclick="filterLow()">Tồn kho < 50</button>
   <button class="btn-green" onclick="filterKM()">Có KM Tháng</button>
   <button class="btn-gray" onclick="resetFilter()">Tất cả</button>
 </div>
 
+<div class="stats">
+  <div class="stat-box">Tổng SP: <b id="total"></b></div>
+  <div class="stat-box">Sắp hết: <b id="low"></b></div>
+  <div class="stat-box">Hết hàng: <b id="out"></b></div>
+</div>
+
 <div class="card">
   <div id="status">Đang tải dữ liệu...</div>
-  <div id="data"></div>
+  <div class="table-wrap">
+    <div id="data"></div>
+  </div>
 </div>
 
 </div>
@@ -112,74 +152,88 @@ const API = "https://api.sheetbest.com/sheets/dcfb93e9-0641-40dc-8315-b8edf3ed08
 
 let list = [];
 let current = [];
+let sortAsc = true;
 
-// LOAD DATA
+// LOAD
 async function loadData() {
   try {
     const res = await fetch(API + "?t=" + Date.now());
-    if (!res.ok) throw new Error("Lỗi API");
-
     list = await res.json();
     current = list;
 
     document.getElementById("status").innerText = "✔ Đã tải dữ liệu";
+
+    updateStats();
     render(current);
 
-  } catch (e) {
-    document.getElementById("status").innerText = "❌ " + e.message;
+  } catch {
+    document.getElementById("status").innerText = "❌ Lỗi load dữ liệu";
   }
 }
 
-// RENDER TABLE
+// STATS
+function updateStats() {
+  let total = list.length;
+  let low = 0;
+  let out = 0;
+
+  list.forEach(r => {
+    let num = parseInt(String(r["TỒN KHO (HỘP)"]).replace(/[^0-9]/g, "")) || 0;
+    if (num === 0) out++;
+    else if (num < 50) low++;
+  });
+
+  document.getElementById("total").innerText = total;
+  document.getElementById("low").innerText = low;
+  document.getElementById("out").innerText = out;
+}
+
+// RENDER
 function render(arr) {
-  if (arr.length === 0) {
-    document.getElementById("data").innerHTML = "Không có dữ liệu";
-    return;
-  }
+  if (!arr.length) return;
 
   let keys = Object.keys(arr[0]);
-  let html = "<table>";
+  let html = "<table><tr>";
 
-  // HEADER
-  html += "<tr>";
-  keys.forEach(k => html += "<th>" + k + "</th>");
+  keys.forEach(k => {
+    html += `<th onclick="sort('${k}')">${k}</th>`;
+  });
+
   html += "</tr>";
 
-  // DATA
   arr.forEach(row => {
     html += "<tr>";
 
     keys.forEach(k => {
       let val = row[k];
 
-      // ✅ KM THÁNG
       if (k === "KM THÁNG") {
         if (val && val.trim() !== "") {
-          html += `<td style="background:#d4edda;">${val}</td>`;
+          html += `<td class="green">${val}</td>`;
         } else {
           html += `<td>${val}</td>`;
         }
       }
 
-      // ✅ TỒN KHO (HỘP) - FIX CHUẨN
       else if (k === "TỒN KHO (HỘP)") {
 
         let num = parseInt(String(val).replace(/[^0-9]/g, "")) || 0;
 
         if (num === 0) {
-          html += `<td style="background:#f8c6c6;">${val}</td>`;
+          html += `<td><span class="badge red">Hết hàng</span></td>`;
         } 
         else if (num < 50) {
-          html += `<td style="background:#ffe0d6;">${val}</td>`;
+          html += `<td><span class="badge orange">${num}</span></td>`;
         } 
         else {
-          html += `<td>${val}</td>`;
+          html += `<td>${num}</td>`;
         }
       }
 
       else {
         html += `<td>${val}</td>`;
       }
+
     });
 
     html += "</tr>";
@@ -193,8 +247,8 @@ function render(arr) {
 document.getElementById("search").addEventListener("input", function() {
   let key = this.value.toLowerCase();
 
-  current = list.filter(row =>
-    Object.values(row).some(v =>
+  current = list.filter(r =>
+    Object.values(r).some(v =>
       String(v).toLowerCase().includes(key)
     )
   );
@@ -202,26 +256,46 @@ document.getElementById("search").addEventListener("input", function() {
   render(current);
 });
 
-// FILTER TỒN KHO <50
+// FILTER
 function filterLow() {
-  current = list.filter(row => {
-    let num = parseInt(String(row["TỒN KHO (HỘP)"]).replace(/[^0-9]/g, "")) || 0;
+  current = list.filter(r => {
+    let num = parseInt(String(r["TỒN KHO (HỘP)"]).replace(/[^0-9]/g, "")) || 0;
     return num < 50;
   });
   render(current);
 }
 
-// FILTER KM THÁNG
 function filterKM() {
-  current = list.filter(row =>
-    row["KM THÁNG"] && row["KM THÁNG"].trim() !== ""
+  current = list.filter(r =>
+    r["KM THÁNG"] && r["KM THÁNG"].trim() !== ""
   );
   render(current);
 }
 
-// RESET
 function resetFilter() {
   current = list;
+  render(current);
+}
+
+// SORT
+function sort(key) {
+  current.sort((a,b) => {
+    let A = a[key];
+    let B = b[key];
+
+    let numA = parseInt(A);
+    let numB = parseInt(B);
+
+    if (!isNaN(numA) && !isNaN(numB)) {
+      return sortAsc ? numA - numB : numB - numA;
+    }
+
+    return sortAsc
+      ? String(A).localeCompare(String(B))
+      : String(B).localeCompare(String(A));
+  });
+
+  sortAsc = !sortAsc;
   render(current);
 }
 
