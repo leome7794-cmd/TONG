@@ -2,44 +2,97 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Tra cứu kho hàng</title>
+<title>DANH MỤC SẢN PHẨM AIKYA 2026</title>
 
 <style>
 body {
-  font-family: Arial;
-  max-width: 1000px;
-  margin: auto;
+  font-family: Arial, sans-serif;
+  background: #f5f7fb;
+  margin: 0;
   padding: 20px;
 }
 
-h1 {
-  text-align: center;
+.container {
+  max-width: 1100px;
+  margin: auto;
 }
 
+/* HEADER */
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.header p {
+  color: #777;
+}
+
+/* CARD */
+.card {
+  background: #fff;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom: 15px;
+}
+
+/* INPUT */
 input, select {
   width: 100%;
   padding: 10px;
-  margin: 10px 0;
-  font-size: 16px;
+  margin: 8px 0;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 15px;
 }
 
+input:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+/* TABLE */
 table {
   width: 100%;
   border-collapse: collapse;
-}
-
-th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
+  overflow: hidden;
+  border-radius: 10px;
 }
 
 th {
-  background-color: #f2f2f2;
+  background: #3498db;
+  color: white;
+  padding: 10px;
 }
 
+td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+tr:hover {
+  background: #f1f9ff;
+}
+
+/* STATUS */
+#status {
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+/* TỒN KHO */
 .low {
   color: red;
+  font-weight: bold;
+}
+
+.ok {
+  color: green;
   font-weight: bold;
 }
 </style>
@@ -47,35 +100,41 @@ th {
 
 <body>
 
-<h1>TRA CỨU KHO HÀNG</h1>
+<div class="container">
 
-<input id="search" placeholder="Tìm sản phẩm...">
+<div class="header">
+  <h1>📦 TRA CỨU KHO HÀNG</h1>
+  <p>Dữ liệu cập nhật tự động từ Google Sheet</p>
+</div>
 
-<select id="filter">
-  <option value="">Tất cả</option>
-  <option value="low">Sắp hết hàng</option>
-</select>
+<div class="card">
+  <input id="search" placeholder="🔍 Tìm sản phẩm...">
+  
+  <select id="filter">
+    <option value="">Tất cả</option>
+    <option value="low">Sắp hết hàng</option>
+  </select>
+</div>
 
-<div id="status">Đang tải dữ liệu...</div>
-<div id="data"></div>
+<div class="card">
+  <div id="status">Đang tải dữ liệu...</div>
+  <div id="data"></div>
+</div>
+
+</div>
 
 <script>
 
-// ✅ API CHUẨN (KHÔNG /TONG)
 const API = "https://api.sheetbest.com/sheets/dcfb93e9-0641-40dc-8315-b8edf3ed0827";
 
 let list = [];
 
-// 🔄 LOAD DATA
 async function loadData() {
   try {
     const res = await fetch(API + "?t=" + Date.now());
-
     if (!res.ok) throw new Error("Không lấy được dữ liệu");
 
-    const json = await res.json();
-
-    list = json;
+    list = await res.json();
 
     document.getElementById("status").innerText = "✔ Đã tải dữ liệu";
     render(list);
@@ -85,7 +144,6 @@ async function loadData() {
   }
 }
 
-// 📊 HIỂN THỊ BẢNG
 function render(arr) {
   if (arr.length === 0) {
     document.getElementById("data").innerHTML = "Không có dữ liệu";
@@ -95,22 +153,22 @@ function render(arr) {
   let keys = Object.keys(arr[0]);
 
   let html = "<table>";
-  
-  // header
+
   html += "<tr>";
-  keys.forEach(k => {
-    html += "<th>" + k + "</th>";
-  });
+  keys.forEach(k => html += "<th>" + k + "</th>");
   html += "</tr>";
 
-  // data
   arr.forEach(row => {
     html += "<tr>";
     keys.forEach(k => {
       let val = row[k];
 
-      if (k.toLowerCase().includes("ton") && Number(val) < 5) {
-        html += `<td class="low">${val}</td>`;
+      if (k.toLowerCase().includes("ton")) {
+        if (Number(val) < 5) {
+          html += `<td class="low">${val}</td>`;
+        } else {
+          html += `<td class="ok">${val}</td>`;
+        }
       } else {
         html += "<td>" + val + "</td>";
       }
@@ -123,7 +181,6 @@ function render(arr) {
   document.getElementById("data").innerHTML = html;
 }
 
-// 🔍 TÌM KIẾM
 document.getElementById("search").addEventListener("input", function() {
   let key = this.value.toLowerCase();
 
@@ -136,7 +193,6 @@ document.getElementById("search").addEventListener("input", function() {
   render(filtered);
 });
 
-// 🔽 LỌC TỒN KHO
 document.getElementById("filter").addEventListener("change", function() {
   let val = this.value;
 
@@ -153,7 +209,6 @@ document.getElementById("filter").addEventListener("change", function() {
   render(filtered);
 });
 
-// 🚀 CHẠY
 loadData();
 
 </script>
