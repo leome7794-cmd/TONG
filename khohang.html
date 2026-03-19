@@ -51,7 +51,6 @@ button {
   cursor: pointer;
 }
 
-.btn-red { background: #d32f2f; color: white; }
 .btn-orange { background: #ff7043; color: white; }
 .btn-green { background: #43a047; color: white; }
 .btn-gray { background: #777; color: white; }
@@ -114,7 +113,7 @@ const API = "https://api.sheetbest.com/sheets/dcfb93e9-0641-40dc-8315-b8edf3ed08
 let list = [];
 let current = [];
 
-// LOAD
+// LOAD DATA
 async function loadData() {
   try {
     const res = await fetch(API + "?t=" + Date.now());
@@ -141,19 +140,20 @@ function render(arr) {
   let keys = Object.keys(arr[0]);
   let html = "<table>";
 
+  // HEADER
   html += "<tr>";
   keys.forEach(k => html += "<th>" + k + "</th>");
   html += "</tr>";
 
+  // DATA
   arr.forEach(row => {
     html += "<tr>";
 
     keys.forEach(k => {
       let val = row[k];
-      let name = k.toLowerCase();
 
-      // 👉 KM THÁNG (chỉ đúng cột này)
-      if (name === "km tháng") {
+      // ✅ KM THÁNG (CHÍNH XÁC)
+      if (k === "KM THÁNG") {
         if (val && val.trim() !== "") {
           html += `<td style="background:#d4edda;">${val}</td>`;
         } else {
@@ -161,8 +161,8 @@ function render(arr) {
         }
       }
 
-      // 👉 TỒN KHO (HỘP)
-      else if (name.includes("tồn kho")) {
+      // ✅ TỒN KHO (HỘP) (CHÍNH XÁC)
+      else if (k === "TỒN KHO (HỘP)") {
         let num = Number(val);
 
         if (num === 0) {
@@ -201,12 +201,10 @@ document.getElementById("search").addEventListener("input", function() {
   render(current);
 });
 
-// FILTER TỒN
+// FILTER TỒN KHO
 function filterLow() {
   current = list.filter(row =>
-    Object.keys(row).some(k =>
-      k.toLowerCase().includes("tồn kho") && Number(row[k]) < 50
-    )
+    Number(row["TỒN KHO (HỘP)"]) < 50
   );
   render(current);
 }
@@ -214,7 +212,7 @@ function filterLow() {
 // FILTER KM THÁNG
 function filterKM() {
   current = list.filter(row =>
-    row["KM Tháng"] && row["KM Tháng"].trim() !== ""
+    row["KM THÁNG"] && row["KM THÁNG"].trim() !== ""
   );
   render(current);
 }
