@@ -25,11 +25,7 @@ body {
 
 .header h1 {
   margin: 0;
-  color: #2c3e50;
-}
-
-.header p {
-  color: #777;
+  color: #d32f2f;
 }
 
 /* CARD */
@@ -52,7 +48,7 @@ input, select {
 }
 
 input:focus {
-  border-color: #3498db;
+  border-color: #d32f2f;
   outline: none;
 }
 
@@ -65,7 +61,7 @@ table {
 }
 
 th {
-  background: #3498db;
+  background: #d32f2f;
   color: white;
   padding: 10px;
 }
@@ -76,23 +72,12 @@ td {
 }
 
 tr:hover {
-  background: #f1f9ff;
+  background: #fff5f5;
 }
 
 /* STATUS */
 #status {
   margin-bottom: 10px;
-  font-weight: bold;
-}
-
-/* TỒN KHO */
-.low {
-  color: red;
-  font-weight: bold;
-}
-
-.ok {
-  color: green;
   font-weight: bold;
 }
 </style>
@@ -111,7 +96,7 @@ tr:hover {
   
   <select id="filter">
     <option value="">Tất cả</option>
-    <option value="low">Sắp hết hàng</option>
+    <option value="low">Sắp hết hàng (&lt; 50)</option>
   </select>
 </div>
 
@@ -124,10 +109,12 @@ tr:hover {
 
 <script>
 
+// ✅ API
 const API = "https://api.sheetbest.com/sheets/dcfb93e9-0641-40dc-8315-b8edf3ed0827";
 
 let list = [];
 
+// 🚀 LOAD DATA
 async function loadData() {
   try {
     const res = await fetch(API + "?t=" + Date.now());
@@ -143,6 +130,7 @@ async function loadData() {
   }
 }
 
+// 📊 RENDER TABLE
 function render(arr) {
   if (arr.length === 0) {
     document.getElementById("data").innerHTML = "Không có dữ liệu";
@@ -150,36 +138,59 @@ function render(arr) {
   }
 
   let keys = Object.keys(arr[0]);
-
   let html = "<table>";
 
+  // HEADER
   html += "<tr>";
   keys.forEach(k => html += "<th>" + k + "</th>");
   html += "</tr>";
 
+  // DATA
   arr.forEach(row => {
     html += "<tr>";
+
     keys.forEach(k => {
       let val = row[k];
+      let keyName = k.toLowerCase();
 
-      if (k.toLowerCase().includes("ton")) {
-        if (Number(val) < 5) {
-          html += `<td class="low">${val}</td>`;
+      // 👉 KM THÁNG (có chữ → xanh lá)
+      if (keyName.includes("km")) {
+        if (val && val.trim() !== "") {
+          html += `<td style="background:#d4edda;">${val}</td>`;
         } else {
-          html += `<td class="ok">${val}</td>`;
+          html += `<td>${val}</td>`;
         }
-      } else {
-        html += "<td>" + val + "</td>";
+      }
+
+      // 👉 TỒN KHO
+      else if (keyName.includes("ton")) {
+        let num = Number(val);
+
+        if (num === 0) {
+          html += `<td style="background:#f8c6c6;">${val}</td>`; // đỏ nhạt
+        } 
+        else if (num < 50) {
+          html += `<td style="background:#ffe0d6;">${val}</td>`; // cam đỏ
+        } 
+        else {
+          html += `<td>${val}</td>`;
+        }
+      }
+
+      // 👉 CỘT KHÁC
+      else {
+        html += `<td>${val}</td>`;
       }
     });
+
     html += "</tr>";
   });
 
   html += "</table>";
-
   document.getElementById("data").innerHTML = html;
 }
 
+// 🔍 SEARCH
 document.getElementById("search").addEventListener("input", function() {
   let key = this.value.toLowerCase();
 
@@ -192,6 +203,7 @@ document.getElementById("search").addEventListener("input", function() {
   render(filtered);
 });
 
+// 🔽 FILTER
 document.getElementById("filter").addEventListener("change", function() {
   let val = this.value;
 
@@ -200,7 +212,7 @@ document.getElementById("filter").addEventListener("change", function() {
   if (val === "low") {
     filtered = list.filter(row =>
       Object.keys(row).some(k =>
-        k.toLowerCase().includes("ton") && Number(row[k]) < 5
+        k.toLowerCase().includes("ton") && Number(row[k]) < 50
       )
     );
   }
@@ -208,6 +220,7 @@ document.getElementById("filter").addEventListener("change", function() {
   render(filtered);
 });
 
+// RUN
 loadData();
 
 </script>
