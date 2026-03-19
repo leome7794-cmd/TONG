@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Kho hàng</title>
+<title>Tra cứu kho hàng</title>
 
 <style>
 body {
@@ -16,27 +16,31 @@ h1 {
   text-align: center;
 }
 
-input {
+input, select {
   width: 100%;
   padding: 10px;
-  margin: 15px 0;
+  margin: 10px 0;
   font-size: 16px;
 }
 
-.item {
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
   border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 10px;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
 }
 
 .low {
   color: red;
   font-weight: bold;
-}
-
-.ok {
-  color: green;
 }
 </style>
 </head>
@@ -45,32 +49,31 @@ input {
 
 <h1>TRA CỨU KHO HÀNG</h1>
 
-<input id="search" placeholder="Tìm sản phẩm, giá, tồn kho...">
+<input id="search" placeholder="Tìm sản phẩm...">
+
 <select id="filter">
   <option value="">Tất cả</option>
   <option value="low">Sắp hết hàng</option>
 </select>
+
 <div id="status">Đang tải dữ liệu...</div>
 <div id="data"></div>
 
 <script>
 
-// 🔥 API CỦA BẠN (KHÔNG CÓ /TONG)
+// ✅ API CHUẨN (KHÔNG /TONG)
 const API = "https://api.sheetbest.com/sheets/dcfb93e9-0641-40dc-8315-b8edf3ed0827";
 
 let list = [];
 
+// 🔄 LOAD DATA
 async function loadData() {
   try {
     const res = await fetch(API + "?t=" + Date.now());
 
-    if (!res.ok) {
-      throw new Error("API lỗi");
-    }
+    if (!res.ok) throw new Error("Không lấy được dữ liệu");
 
     const json = await res.json();
-
-    console.log(json); // để debug
 
     list = json;
 
@@ -82,6 +85,7 @@ async function loadData() {
   }
 }
 
+// 📊 HIỂN THỊ BẢNG
 function render(arr) {
   if (arr.length === 0) {
     document.getElementById("data").innerHTML = "Không có dữ liệu";
@@ -90,36 +94,31 @@ function render(arr) {
 
   let keys = Object.keys(arr[0]);
 
-  let html = "<table border='1' cellpadding='8' style='border-collapse: collapse; width:100%'>";
+  let html = "<table>";
   
+  // header
   html += "<tr>";
   keys.forEach(k => {
     html += "<th>" + k + "</th>";
   });
   html += "</tr>";
 
+  // data
   arr.forEach(row => {
     html += "<tr>";
     keys.forEach(k => {
       let val = row[k];
 
       if (k.toLowerCase().includes("ton") && Number(val) < 5) {
-        html += `<td style="color:red; font-weight:bold">${val}</td>`;
+        html += `<td class="low">${val}</td>`;
       } else {
         html += "<td>" + val + "</td>";
       }
-
     });
     html += "</tr>";
   });
 
   html += "</table>";
-
-  document.getElementById("data").innerHTML = html;
-}
-
-    html += `</div>`;
-  });
 
   document.getElementById("data").innerHTML = html;
 }
@@ -136,6 +135,8 @@ document.getElementById("search").addEventListener("input", function() {
 
   render(filtered);
 });
+
+// 🔽 LỌC TỒN KHO
 document.getElementById("filter").addEventListener("change", function() {
   let val = this.value;
 
@@ -151,6 +152,8 @@ document.getElementById("filter").addEventListener("change", function() {
 
   render(filtered);
 });
+
+// 🚀 CHẠY
 loadData();
 
 </script>
