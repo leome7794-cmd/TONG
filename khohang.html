@@ -130,7 +130,7 @@ async function loadData() {
   }
 }
 
-// RENDER
+// RENDER TABLE
 function render(arr) {
   if (arr.length === 0) {
     document.getElementById("data").innerHTML = "Không có dữ liệu";
@@ -152,7 +152,7 @@ function render(arr) {
     keys.forEach(k => {
       let val = row[k];
 
-      // ✅ KM THÁNG (CHÍNH XÁC)
+      // ✅ KM THÁNG
       if (k === "KM THÁNG") {
         if (val && val.trim() !== "") {
           html += `<td style="background:#d4edda;">${val}</td>`;
@@ -161,21 +161,10 @@ function render(arr) {
         }
       }
 
-      // ✅ TỒN KHO (HỘP) (CHÍNH XÁC)
+      // ✅ TỒN KHO (HỘP) - FIX CHUẨN
       else if (k === "TỒN KHO (HỘP)") {
 
-  let num = parseInt(String(val).replace(/[^0-9]/g, "")) || 0;
-
-  if (num === 0) {
-    html += `<td style="background:#f8c6c6;">${val}</td>`; // đỏ nhạt
-  } 
-  else if (num < 50) {
-    html += `<td style="background:#ffe0d6;">${val}</td>`; // cam nhạt
-  } 
-  else {
-    html += `<td>${val}</td>`;
-  }
-}
+        let num = parseInt(String(val).replace(/[^0-9]/g, "")) || 0;
 
         if (num === 0) {
           html += `<td style="background:#f8c6c6;">${val}</td>`;
@@ -213,11 +202,12 @@ document.getElementById("search").addEventListener("input", function() {
   render(current);
 });
 
-// FILTER TỒN KHO
+// FILTER TỒN KHO <50
 function filterLow() {
-  current = list.filter(row =>
-    Number(row["TỒN KHO (HỘP)"]) < 50
-  );
+  current = list.filter(row => {
+    let num = parseInt(String(row["TỒN KHO (HỘP)"]).replace(/[^0-9]/g, "")) || 0;
+    return num < 50;
+  });
   render(current);
 }
 
