@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Kho hàng</title>
+
+<style>
+body {
+  font-family: Arial;
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 15px 0;
+  font-size: 16px;
+}
+
+.item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.low {
+  color: red;
+  font-weight: bold;
+}
+
+.ok {
+  color: green;
+}
+</style>
+</head>
+
+<body>
+
+<h1>TRA CỨU KHO HÀNG</h1>
+
+<input id="search" placeholder="Tìm sản phẩm, giá, tồn kho...">
+
+<div id="status">Đang tải dữ liệu...</div>
+<div id="data"></div>
+
+<script>
+
+// 🔥 API CỦA BẠN (KHÔNG CÓ /TONG)
+const API = "https://api.sheetbest.com/sheets/dcfb93e9-0641-40dc-8315-b8edf3ed0827";
+
+let list = [];
+
+async function loadData() {
+  try {
+    const res = await fetch(API + "?t=" + Date.now());
+    const json = await res.json();
+
+    list = json;
+
+    document.getElementById("status").innerText = "✔ Đã tải dữ liệu";
+    render(list);
+
+  } catch (e) {
+    document.getElementById("status").innerText = "❌ Không kết nối được API";
+  }
+}
+
+function render(arr) {
+  let html = "";
+
+  arr.forEach(item => {
+    html += `<div class="item">`;
+
+    for (let key in item) {
+
+      let value = item[key];
+
+      // highlight tồn kho
+      if (key.toLowerCase().includes("ton") && Number(value) < 5) {
+        html += `<div><b>${key}:</b> <span class="low">${value}</span></div>`;
+      } else {
+        html += `<div><b>${key}:</b> <span class="ok">${value}</span></div>`;
+      }
+
+    }
+
+    html += `</div>`;
+  });
+
+  document.getElementById("data").innerHTML = html;
+}
+
+// 🔍 TÌM KIẾM
+document.getElementById("search").addEventListener("input", function() {
+  let key = this.value.toLowerCase();
+
+  let filtered = list.filter(row =>
+    Object.values(row).some(v =>
+      String(v).toLowerCase().includes(key)
+    )
+  );
+
+  render(filtered);
+});
+
+loadData();
+
+</script>
+
+</body>
+</html>
