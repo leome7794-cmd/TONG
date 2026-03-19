@@ -63,7 +63,14 @@ let list = [];
 async function loadData() {
   try {
     const res = await fetch(API + "?t=" + Date.now());
+
+    if (!res.ok) {
+      throw new Error("API lỗi");
+    }
+
     const json = await res.json();
+
+    console.log(json); // để debug
 
     list = json;
 
@@ -71,7 +78,7 @@ async function loadData() {
     render(list);
 
   } catch (e) {
-    document.getElementById("status").innerText = "❌ Không kết nối được API";
+    document.getElementById("status").innerText = "❌ Lỗi: " + e.message;
   }
 }
 
